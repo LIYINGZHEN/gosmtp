@@ -2,7 +2,7 @@
 
 *其他语言* [🇺🇸](./README.en.md)
 
-[![asciicast](https://asciinema.org/a/Vk42rk9PsMqQSPixdfQPNepie.svg)](https://asciinema.org/a/Vk42rk9PsMqQSPixdfQPNepie)
+![demo](https://user-images.githubusercontent.com/11765228/56507574-09d8b000-6522-11e9-8025-cc705315669b.gif)
 
 ## 如何使用
 
