@@ -78,3 +78,12 @@ func (s *Smtp) Send(mail *Mail) error {
 
 	return nil
 }
+
+//https://docs.python.org/3/library/smtplib.html
+type SmtpInterface interface {
+	//向服务器标识用户身份
+	Helo(string) error
+	//初始化邮件传输
+	Mail(string) error
+	//...
+}
