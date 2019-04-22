@@ -8,11 +8,9 @@ import (
 )
 
 func main() {
-	mail := smtp.NewMail()
-
 	config := config.New()
 	gosmtp := smtp.New(config.Host, config.Port, config.Sender, config.Password)
-
+	mail := smtp.NewMail(config.Sender)
 	err := gosmtp.Send(mail)
 	if err != nil {
 		log.Printf("[Error] Unable to send emails: %v", err)

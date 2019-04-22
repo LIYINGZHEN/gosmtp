@@ -64,7 +64,7 @@ func (s *Smtp) Send(mail *Mail) error {
 		return err
 	}
 
-	_, err = w.Write([]byte(mail.BuildMessage()))
+	_, err = w.Write([]byte(mail.buildMessage()))
 	if err != nil {
 		return err
 	}

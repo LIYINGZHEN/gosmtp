@@ -2,6 +2,7 @@ package smtp
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -14,47 +15,49 @@ type Mail struct {
 	Body    string
 }
 
-func NewMail() *Mail {
+func NewMail(sender string) *Mail {
 	var (
-		sender  string
 		to      string
 		subject string
 	)
 
-	fmt.Println("input user as:user@xx.xx")
-	fmt.Scan(&sender)
-
-	fmt.Println("input sent list as:to1@xx.xx,to2@xx.xx,...")
+	fmt.Println("Please enter receivers. (Use comma as a Separator) Example: a@gmail.com,b@gmail.com")
 	fmt.Scan(&to)
-	tolist := strings.Split(to, ",")
+	receivers := strings.Split(to, ",")
 
-	fmt.Println("input subject")
+	fmt.Println("Please enter the email subject.")
 	fmt.Scan(&subject)
 
-	fmt.Println("input message and end with '|' then newline")
-	inputReader := bufio.NewReader(os.Stdin)
-	body, err := inputReader.ReadString('|')
-	if err != nil {
-		fmt.Println(err)
+	fmt.Println("Please enter the message. You can end with '|'")
+	scanner := bufio.NewScanner(os.Stdin)
+	var body string
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "|" {
+			break
+		}
+		body += line + "\n"
 	}
 
 	return &Mail{
 		Sender:  sender,
-		To:      tolist,
+		To:      receivers,
 		Subject: subject,
 		Body:    body,
 	}
 }
 
-func (mail *Mail) BuildMessage() string {
-	header := ""
-	header += fmt.Sprintf("From: %s\r\n", mail.Sender)
+func (mail *Mail) buildMessage() string {
+	var buf bytes.Buffer
+	buf.WriteString("From: " + mail.Sender)
+	buf.WriteString("\r\n")
 	if len(mail.To) > 0 {
-		header += fmt.Sprintf("To: %s\r\n", strings.Join(mail.To, ";"))
+		buf.WriteString("To: " + strings.Join(mail.To, ";"))
+		buf.WriteString("\r\n")
 	}
+	buf.WriteString("Subject: " + mail.Subject)
+	buf.WriteString("\r\n")
+	buf.WriteString(mail.Body)
 
-	header += fmt.Sprintf("Subject: %s\r\n", mail.Subject)
-	header += "\r\n" + mail.Body
-
-	return header
+	return buf.String()
 }
