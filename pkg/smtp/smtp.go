@@ -1,26 +1,45 @@
 package smtp
 
 import (
+	"crypto/tls"
 	"log"
 	"net/smtp"
 )
 
-type SmtpService struct {
-	server Smtper
-	mail   *Mail
-	Auth   smtp.Auth
+type Smtp struct {
+	Host      string
+	Port      string
+	Email     string
+	Password  string
+	TlsConfig *tls.Config
+	Auth      smtp.Auth
 }
 
-func New(s *SmtpServer, m *Mail) *SmtpService {
-	return &SmtpService{
-		server: s,
-		mail:   m,
-		Auth:   smtp.PlainAuth("", s.Email, s.Password, s.Host),
+func New(host string, port string, email string, password string) *Smtp {
+	return &Smtp{
+		Host:     host,
+		Port:     port,
+		Email:    email,
+		Password: password,
+		TlsConfig: &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         host,
+		},
+		Auth: smtp.PlainAuth("", email, password, host),
 	}
 }
 
-func (s *SmtpService) Send() error {
-	client, err := s.server.new()
+func (s *Smtp) serverName() string {
+	return s.Host + ":" + s.Port
+}
+
+func (s *Smtp) Send(mail *Mail) error {
+	conn, err := tls.Dial("tcp", s.serverName(), s.TlsConfig)
+	if err != nil {
+		return err
+	}
+
+	client, err := smtp.NewClient(conn, s.Host)
 	if err != nil {
 		return err
 	}
@@ -29,13 +48,11 @@ func (s *SmtpService) Send() error {
 		return err
 	}
 
-	if err = client.Mail(s.mail.Sender); err != nil {
+	if err = client.Mail(mail.Sender); err != nil {
 		return err
 	}
 
-	receivers := append(s.mail.To, s.mail.Cc...)
-	receivers = append(receivers, s.mail.Bcc...)
-	for _, k := range receivers {
+	for _, k := range mail.To {
 		log.Println("sending to: ", k)
 		if err = client.Rcpt(k); err != nil {
 			return err
@@ -47,7 +64,7 @@ func (s *SmtpService) Send() error {
 		return err
 	}
 
-	_, err = w.Write([]byte(s.mail.BuildMessage()))
+	_, err = w.Write([]byte(mail.BuildMessage()))
 	if err != nil {
 		return err
 	}

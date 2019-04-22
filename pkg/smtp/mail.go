@@ -1,17 +1,49 @@
 package smtp
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 )
 
 type Mail struct {
 	Sender  string
 	To      []string
-	Cc      []string
-	Bcc     []string
 	Subject string
 	Body    string
+}
+
+func NewMail() *Mail {
+	var (
+		sender  string
+		to      string
+		subject string
+	)
+
+	fmt.Println("input user as:user@xx.xx")
+	fmt.Scan(&sender)
+
+	fmt.Println("input sent list as:to1@xx.xx,to2@xx.xx,...")
+	fmt.Scan(&to)
+	tolist := strings.Split(to, ",")
+
+	fmt.Println("input subject")
+	fmt.Scan(&subject)
+
+	fmt.Println("input message and end with '|' then newline")
+	inputReader := bufio.NewReader(os.Stdin)
+	body, err := inputReader.ReadString('|')
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return &Mail{
+		Sender:  sender,
+		To:      tolist,
+		Subject: subject,
+		Body:    body,
+	}
 }
 
 func (mail *Mail) BuildMessage() string {
@@ -19,12 +51,6 @@ func (mail *Mail) BuildMessage() string {
 	header += fmt.Sprintf("From: %s\r\n", mail.Sender)
 	if len(mail.To) > 0 {
 		header += fmt.Sprintf("To: %s\r\n", strings.Join(mail.To, ";"))
-	}
-	if len(mail.Cc) > 0 {
-		header += fmt.Sprintf("Cc: %s\r\n", strings.Join(mail.Cc, ";"))
-	}
-	if len(mail.Bcc) > 0 {
-		header += fmt.Sprintf("Bcc: %s\r\n", strings.Join(mail.Bcc, ";"))
 	}
 
 	header += fmt.Sprintf("Subject: %s\r\n", mail.Subject)
